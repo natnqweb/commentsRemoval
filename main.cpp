@@ -167,13 +167,18 @@ int main()
 	std::cout << "enter directory for recursive cleanup : ";
 	std::cin >> directory_path;
 	std::cout << "\n";
+
 	auto start = std::chrono::high_resolution_clock::now();
 	auto filter_path = std::filesystem::path(filter_path_str);
 	auto line_regex_path = std::filesystem::path(line_regex_path_str);
 	extract_all_filters(filter_path);
 	extract_all_file_line_regexes(line_regex_path);
 	if (std::filesystem::exists(directory_path))
+	{
+		std::cout << "please wait, work in progress...";
 		scan_directory(directory_path);
+		std::cout << "\n";
+	}
 
 	// Stop the timer
 	auto end = std::chrono::high_resolution_clock::now();
