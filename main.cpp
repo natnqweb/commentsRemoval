@@ -178,7 +178,7 @@ int main()
 	// Stop the timer
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	
+
 	std::cout << "all excluded files:\n";
 
 	std::for_each(std::execution::seq, std::begin(vec_excluded_files), std::end(vec_excluded_files), [](const auto& file)
@@ -193,10 +193,10 @@ int main()
 			std::cout << file << "\n";
 		});
 
-	std::cout << "success, operation time : " << elapsed_time<< "ms";
+	std::cout << "success, operation time : " << elapsed_time << "ms";
 	std::cout << "\nnumber of lines of code touched: " << number_of_lines_of_code;
-	int retval = 0;
+	std::string retval;
 	std::cin >> retval;
-	return retval;
+	return 1;
 }
 
