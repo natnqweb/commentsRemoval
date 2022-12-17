@@ -5,22 +5,22 @@
 #include <vector>
 #include <algorithm>
 #include <regex>
-#include <execution>
 #include <chrono>
+
 constexpr auto INITIAL_RESERVE_SIZE = 10000;
 static std::vector<std::regex>  vec_user_regexes{};
 static std::vector<std::string> vec_excluded_files{};
 static std::vector<std::string> vec_edited_files{};
 static std::vector<std::regex>  vec_line_regexes{};
-long long number_of_lines_of_code = 0;
-long long number_of_chars_of_code = 0;
+static long long number_of_lines_of_code = 0;
+static long long number_of_chars_of_code = 0;
 
 static bool is_forbidden_path(const std::filesystem::path& path)
 {
 	if (vec_user_regexes.empty())
 		return false;
 
-	const auto rgx_it = std::find_if(std::execution::par, std::begin(vec_user_regexes), std::end(vec_user_regexes), [dir = path.string().c_str()](const std::regex& rgx)
+	const auto rgx_it = std::find_if(std::begin(vec_user_regexes), std::end(vec_user_regexes), [dir = path.string().c_str()](const std::regex& rgx)
 		{
 			std::cmatch m;
 			if (std::regex_match(dir, m, rgx))
@@ -43,7 +43,7 @@ static bool is_forbidden_line(const std::string& line)
 	if (vec_line_regexes.empty())
 		return false;
 
-	const auto it = std::find_if(std::execution::par, std::begin(vec_line_regexes), std::end(vec_line_regexes), [a_line = line.c_str()](const std::regex& rgx)
+	const auto it = std::find_if(std::begin(vec_line_regexes), std::end(vec_line_regexes), [a_line = line.c_str()](const std::regex& rgx)
 		{
 			std::cmatch m;
 			return std::regex_match(a_line, m, rgx);
@@ -189,14 +189,14 @@ int main()
 
 	std::cout << "all excluded files:\n";
 
-	std::for_each(std::execution::seq, std::begin(vec_excluded_files), std::end(vec_excluded_files), [](const auto& file)
+	std::for_each(std::begin(vec_excluded_files), std::end(vec_excluded_files), [](const auto& file)
 		{
 			std::cout << file << "\n";
 		});
 
 	std::cout << "all edited files:\n";
 
-	std::for_each(std::execution::seq, std::begin(vec_edited_files), std::end(vec_edited_files), [](const auto& file)
+	std::for_each(std::begin(vec_edited_files), std::end(vec_edited_files), [](const auto& file)
 		{
 			std::cout << file << "\n";
 		});
