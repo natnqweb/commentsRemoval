@@ -59,9 +59,9 @@ static void remove_comments(const std::string& file_path) {
 	bool in_line_comment = false;
 
 	while (std::getline(input_file, line)) {
-		bool is_excluded = false;
-		if (is_forbidden_line(line))
-			is_excluded = true;
+		
+		const bool is_excluded = is_forbidden_line(line);
+		
 		for (size_t i = 0; i < line.size(); i++) {
 			// Check for start of block comment
 			if (!is_excluded && line[i] == '/' && line[i + 1] == '*') {
