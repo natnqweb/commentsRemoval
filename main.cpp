@@ -13,6 +13,8 @@ static std::vector<std::string> vec_excluded_files{};
 static std::vector<std::string> vec_edited_files{};
 static std::vector<std::regex>  vec_line_regexes{};
 long long number_of_lines_of_code = 0;
+long long number_of_chars_of_code = 0;
+
 static bool is_forbidden_path(const std::filesystem::path& path)
 {
 	if (vec_user_regexes.empty())
@@ -66,6 +68,7 @@ static void remove_comments(const std::string& file_path) {
 		const bool is_excluded = is_forbidden_line(line);
 
 		for (size_t i = 0; i < line.size(); i++) {
+			number_of_chars_of_code++;
 			// Check for start of block comment
 			if (!is_excluded && line[i] == '/' && line[i + 1] == '*') {
 				in_block_comment = true;
@@ -200,8 +203,8 @@ int main()
 
 	std::cout << "success, operation time : " << elapsed_time << "ms";
 	std::cout << "\nnumber of lines of code touched: " << number_of_lines_of_code;
+	std::cout << "\nnumber of characters touched: " << number_of_chars_of_code;
 	std::string retval;
 	std::cin >> retval;
 	return 1;
 }
-
