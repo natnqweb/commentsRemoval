@@ -6,14 +6,18 @@
 #include <algorithm>
 #include <regex>
 #include <chrono>
+#include <future>
+
+
+std::mutex mtx;
 
 constexpr auto INITIAL_RESERVE_SIZE = 10000;
 static std::vector<std::regex>  vec_user_regexes{};
 static std::vector<std::string> vec_excluded_files{};
 static std::vector<std::string> vec_edited_files{};
+static std::vector<std::future<void>> ftrs;
 static std::vector<std::regex>  vec_line_regexes{};
 static long long number_of_lines_of_code = 0;
-static long long number_of_chars_of_code = 0;
 
 static bool is_forbidden_path(const std::filesystem::path& path)
 {
@@ -64,11 +68,11 @@ static void remove_comments(const std::string& file_path) {
 	bool in_line_comment = false;
 
 	while (std::getline(input_file, line)) {
-		number_of_lines_of_code++;
+
 		const bool is_excluded = is_forbidden_line(line);
 
 		for (size_t i = 0; i < line.size(); i++) {
-			number_of_chars_of_code++;
+		
 			// Check for start of block comment
 			if (!is_excluded && line[i] == '/' && line[i + 1] == '*') {
 				in_block_comment = true;
@@ -101,8 +105,11 @@ static void remove_comments(const std::string& file_path) {
 		// Add a newline character after each line
 		output += '\n';
 	}
+	{
+		std::lock_guard lck(mtx);
+		vec_edited_files.push_back(file_path);
+	}
 
-	vec_edited_files.push_back(file_path);
 	// Write the output to the file
 	std::ofstream output_file(file_path);
 	output_file << output;
@@ -111,8 +118,11 @@ static void remove_comments(const std::string& file_path) {
 static void scan_directory(const std::string& directory_path) {
 	for (const auto& entry : std::filesystem::recursive_directory_iterator(directory_path)) {
 		auto extension = entry.path().extension();
-		if ((extension == ".cpp" || extension == ".h") && !is_forbidden_path(entry)) {
-			remove_comments(entry.path().string());
+		if ((extension == ".cpp" || extension == ".h" || extension == ".c") && !is_forbidden_path(entry)) {
+			{
+				ftrs.push_back(std::async(std::launch::async, remove_comments, entry.path().string()));
+			}
+			
 		}
 	}
 }
@@ -180,12 +190,20 @@ int main()
 	{
 		std::cout << "please wait, work in progress...";
 		scan_directory(directory_path);
+		for (const auto& ft : ftrs)
+		{
+			if (ft.valid())
+				ft.wait();
+		}
 		std::cout << "\n";
 	}
+
+
 
 	// Stop the timer
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
 
 	std::cout << "all excluded files:\n";
 
@@ -202,9 +220,9 @@ int main()
 		});
 
 	std::cout << "success, operation time : " << elapsed_time << "ms";
-	std::cout << "\nnumber of lines of code touched: " << number_of_lines_of_code;
-	std::cout << "\nnumber of characters touched: " << number_of_chars_of_code;
+	std::cout << "\nnumber of files edited: " << vec_edited_files.size();
 	std::string retval;
 	std::cin >> retval;
 	return 1;
 }
+
